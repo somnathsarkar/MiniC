@@ -12,7 +12,7 @@ int main(){
 	// Correct test case for int dataType
 	a = 10;
 	
-	//Incorrect test case for float dataType
+	//Incorrect test case for int dataType
 	k = 2x;
 	
 	//Arithmetic operations on int dataType
@@ -29,6 +29,15 @@ int main(){
 	f = 2.00;
 	g = 3;
 	float g = f - e;
+	
+	//Incorrect test case for float dataType
+	float x = 1.0.1;
+	
+	//Incorrect test case for assignment
+	float x = ;
+	
+	//Incorrect test case for operations
+	x+-;
 	
 	//TestCases for checking the valid variable conventions
 	
