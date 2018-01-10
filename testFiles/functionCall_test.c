@@ -22,7 +22,6 @@ int main(){
 	else 
 		j = 3;
 	//Invalid function calls
-	functionCall;
 	functionCall[];
 }
 		
