@@ -193,27 +193,27 @@ comma [,]
 	BEGIN start_keyword;
 }
 {startscope} {
-	ECHO;
+	printf("(separator,%s)",yytext);
 	BEGIN start_clean;
 	push(imp-1);
 	if(yytext[0]=='(')
 		opensmall++;
 }
 {endscope} {
-	ECHO;
+	printf("(separator,%s)",yytext);
 	BEGIN start_clean;
 	pop();
 	if(yytext[0]==')')
 		opensmall--;
 }
 {separator} {
-	ECHO;
+	printf("(separator,%s)",yytext);
 	BEGIN start_clean;
 	datatype[0] = 0;
 	newdef = 0;
 }
 {comma} {
-	ECHO;
+	printf("(separator,,)");
 	BEGIN start_clean;
 	if(datatype[0])
 		newdef = 1;
