@@ -1,12 +1,10 @@
 /*
 	This is a program to test the compiler for handling loops, datatype, comments and basic arithmetic operations
 */
-
+int a,b=5,c;
 int main(){
-	int a;
 	a = 1;
-	int b = 5;
-	
+	c = a;
 	// Correct test case for If else loop
 	if( a == 1)                 
 		b = 2;
@@ -14,19 +12,11 @@ int main(){
 		b = 4;
 	else
 		b = 5;
-		
-	// Incorrect test case for if else loop
-	else if( b == 5)
-		int c = 0; 	
 	
 	//Valid while loop statement 
 	while(b!=0){
 		b--;
-	}
-	
-	//Invalid while loop
-	while ;
-	
+	}	
 	
 	// TestCase for checking the correct working of nested loops 
 	while(a!=0)

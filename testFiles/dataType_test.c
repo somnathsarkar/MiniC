@@ -33,16 +33,11 @@ int main(){
 	//Incorrect test case for float dataType
 	float x = 1.0.1;
 	
-	//Incorrect test case for assignment
-	float x = ;
-	
-	//Incorrect test case for operations
-	x+-;
-	
 	//TestCases for checking the valid variable conventions
 	
 	int abc;
 	int abc_9;
 	//Invalid Case:
 	int 9_abc;
+	char* str = "Invalid string 
 }

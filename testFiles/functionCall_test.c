@@ -1,27 +1,25 @@
 /* 
 	This is a program to test almost all the functionalities provided by the compiler and mainly function calls
 */
-
-void functionCall( float a){
-	int  i = 1;
+int i = 10;
+void func( int a){
+	i = a;
 	while(i!=0)
 	{
-		printf("%d", a);
+		printf("%d\n", i);
 		i--;
 	}
 }
 		
 int main(){
 	int i, j = 3;
-	float abc_9;
-	abc_9 = 10.00;
+	float a9;
+	a9 = 10.00;
 	//Valid function calls
-	printf("Hello World\n");
+	printf("Hi\n");
 	if( i < 2)
-		functionCall(abc_9);
+		func(7);
 	else 
 		j = 3;
-	//Invalid function calls
-	functionCall[];
 }
 		
