@@ -8,7 +8,7 @@ struct hash_node{
 	int id;
 	struct hash_node* next;
 };
-const char * keywords[] = {"int","float","char","long","short","double","if","else","while","struct","for","switch","case","break","union","return"};
+const char * keywords[] = {"int","float","char","long","short","double","void","if","else","while","struct","for","switch","case","break","union","return"};
 const char * errormsg[] = {"Could not identify token","Dangling Comment","Dangling String Literal"};
 const char * literals[] = {"Integer\t","Floating Point","String\t"};
 const int MOD = 104729,PRIME = 1009;
@@ -19,7 +19,8 @@ int ctypes[100],idline[100],conline[100];
 char datatype[100];
 int idstack[100],sp,newdef = 0;
 int lines = 1;
-int kc = 16,idc = 0,opensmall = 0,imp = 0,conc = 0;
+int kc = 17,idc = 0,opensmall = 0,imp = 0,conc = 0;
+int lastdef = 0;
 int match,i;
 int errors[100],errorlines[100],ec = 0;
 int constant_type(char* str){
@@ -122,7 +123,7 @@ danglingcomment "/*"
 preprocessor "#".*
 ws [\t ]+
 newline [\n]
-datatype ("int"|"float"|"double"|"long"|"short"|"char"|"struct"|"union")\**
+datatype ("int"|"float"|"double"|"long"|"short"|"char"|"struct"|"union"|"void")\**
 identifier {letter}({digit}|{letter}|[_])*
 if_keyword "if"
 else_keyword "else"
@@ -135,7 +136,7 @@ intliteral {digit}+
 floatliteral [+-]?(({digit}+("."{digit}*)?)|("."{digit}+))
 stringliteral "\""(\\.|[^\\"])*["]
 literal {intliteral}|{floatliteral}|{stringliteral}
-operator "+="|"++"|"--"|"-="|"*="|"/="|"^="|"&="|"|="|"=="|"&&"|"||"|"->"|"."|[+\-*/=\^&|]
+operator "+="|"++"|"--"|"-="|"*="|"/="|"^="|"&="|"|="|"=="|"&&"|"||"|"->"|"!="|"<="|">="|[+\-*/=\^&|<>]
 separator [;]
 startscope [{(]
 endscope [)}]
@@ -143,7 +144,14 @@ comma [,]
 %Start start_clean start_literal start_identifier start_keyword
 %%
 {comment} {printf("COMMENT"); BEGIN start_clean;}
-{multicomment} {printf("MULTICOMMENT"); BEGIN start_clean;}
+{multicomment} {
+	printf("MULTICOMMENT");
+	for(int i = 0; i<yyleng; i++){
+		if(yytext[i]=='\n')
+			lines++;
+	}
+	BEGIN start_clean;
+}
 {danglingcomment} {errorlines[ec] = lines; errors[ec++] = 1; BEGIN start_clean;}
 {preprocessor} {printf("PREPROCESSOR"); BEGIN start_clean;}
 {ws} {ECHO; BEGIN start_clean;}
@@ -171,7 +179,8 @@ comma [,]
 		free(yycopy);
 		REJECT;
 	}else{
-		printf("(identifier,%d)",abs(insert_hash(hash_map[0],yycopy,1,is_func)));
+		lastdef = insert_hash(hash_map[0],yycopy,1,is_func);
+		printf("(identifier,%d)",abs(lastdef));
 		newdef = 0;
 		free(yycopy);
 		BEGIN start_identifier;
@@ -248,9 +257,8 @@ int main(){
 	if(ec){
 		printf("One or more errors were found:\n");
 			printerrors();
-		printf("\n");
 	}
-	if(ec){
+	if(!ec){
 		printidentifiers();
 		printf("\n");
 		printconstants();
