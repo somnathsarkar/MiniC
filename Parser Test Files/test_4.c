@@ -2,15 +2,13 @@
 
 #include<stdio.h>
 
-void max(int a,int b);
-
 int main(){
-    //Valid Test cases
 
 
     int a=10;
     int b=15;
 
+    // Valid if else statements
     if(a>b){
         printf("hi 1");
     }
@@ -18,24 +16,27 @@ int main(){
         printf(" hi 2")
     }
 
+    // Valid while loop
     while(a>0)
         a--;
 
+    // Valid while loop
     while(b>0)
     {
         printf("Hi 3")
         b--;
     }
-    //Invalid Test Cases
-
+    
+    // Invalid if statement: No condition
     if(){
         printf("Error");
     }
-
-    //Else without a previuos if
-
+    
+    a = 5;
+    
+    // Invalid else statement: No matching if
     else{
-
+        
     }
      
     return 0;
