@@ -4,13 +4,16 @@
 #include <string.h>
 #include "symboltable.h"
 extern FILE* yyin;
-extern int yylineno;
+extern int lineno;
+void lexinit();
+void printconstanttable();
 int was_return;
 char datatype[20];
 struct symboltable* symstack[100];
 char *scstack[100];
 int sp = 0;
 void init(){
+	lexinit();
     scstack[0] = strdup("");
     symstack[0] = createsymboltable();
 }
@@ -26,18 +29,19 @@ void pop(){
 void printsymboltable(){
     printf("Symbol Table\n");
     struct node *focus = (symstack[0])->root;
-    printf("\nIdentifier Name\tDatatype\tLine\n");
+    printf("Identifier Name\tLine\tDatatype\n");
     while(focus){
-        printf("%s\t\t%s\t\t%d\n",focus->id,focus->dtype,focus->line);
+        printf("%s\t\t%d\t%s\n",focus->id,focus->line,focus->dtype);
         focus = focus->next;
     }
 }
 void undeclared_identifier(char * x){
-    for(int i = sp; i>=0; i--){
+	int i;
+    for(i = sp; i>=0; i--){
         if(lookup(symstack[i],x))
             return;
     }
-    printf("Warning: Undeclared Identifier %s on Line %d\n",x,yylineno);
+    printf("Warning: Undeclared Identifier %s on Line %d\n",x,lineno);
 }
 %}
 
@@ -49,20 +53,22 @@ void undeclared_identifier(char * x){
 %token BO BC CBO CBC
 
 %left COMMA
-%left UNARY_OPERATOR PNT
-%left '*' '/'
-%left '+' '-'
-%left '<' '>' LE GE
-%left EQU NE
-%left '&'
-%left '^'
+%right EQ PE XE AE OE ME
+%left OO
+%left AA
 %left '|'
+%left '^'
+%left '&'
+%left EQU NE
+%left '<' '>' LE GE
+%left '+' '-'
+%left '*' '/'
+%left UNARY_OPERATOR PNT
 %right ELSE
-%right EQ
 
 %%
 S
-    : S_REC {printsymboltable();}
+    : S_REC {printsymboltable();printconstanttable();}
     ;
 S_REC
     : /* empty */
@@ -90,6 +96,7 @@ STATEMENT
     ;
 ASSIGNMENT
     : DATATYPE {strcpy(datatype,$<str>1);} DECLARATIONLIST
+    | STRUCTUNION ID {undeclared_identifier($<str>2); strcpy(datatype,$<str>1);} IDCHAIN
     ;
 DECLARATIONLIST
     : ID {add_identifier(symstack[sp],$<str>1,datatype);}
@@ -98,7 +105,7 @@ DECLARATIONLIST
     | ID EQ RVALUE COMMA DECLARATIONLIST {add_identifier(symstack[sp],$<str>1,datatype);}
     ;
 COMPOUNDDECLARATION
-    : STRUCTUNION ID {add_identifier(symstack[sp],$<str>2,$<str>1); push($<str>2);} CBO ASSIGNMENTLIST CBC {pop();}
+    : STRUCTUNION ID {add_identifier(symstack[sp],$<str>2,$<str>1); push($<str>2); $<str>$ = strdup($<str>1);} CBO ASSIGNMENTLIST CBC {strcpy(datatype,$<str>1);pop();}
     ;
 ASSIGNMENTLIST
     : /* empty */
@@ -120,8 +127,7 @@ WHILEHEAD
     : WHILE BO EXPRESSION BC
     ;
 FUNCTIONBLOCK
-    : VALIDSTATEMENT
-    | FUNCTIONHEAD {if (strcmp($<str>1,"void")){was_return = 0;} $<str>$ = strdup($<str>1);} CBO MULTISTATEMENT CBC {if(strcmp($<str>1,"void")&&!was_return)printf("Warning: Return value expected for non-void function on Line %d\n",yylineno);was_return=0;pop();}
+    : FUNCTIONHEAD {if (strcmp($<str>1,"void")){was_return = 0;} $<str>$ = strdup($<str>1);} CBO MULTISTATEMENT CBC {if(strcmp($<str>1,"void")&&!was_return)printf("Warning: Return value expected for non-void function on Line %d\n",lineno);was_return=0;pop();}
     ;
 FUNCTIONID
     : DATATYPE ID BO {$<str>$ = strdup($<str>1); strcpy(datatype,$<str>1); strcat(datatype,"()"); add_identifier(symstack[sp],$<str>2,datatype); push($<str>2); }
@@ -143,8 +149,8 @@ RVALUE
 EXPRESSION 
     : VARLIT
     | FUNCTIONCALL
-    | VARLIT BIN_OP EXPRESSION {}
-    | VARLIT COMMA EXPRESSION {}
+    | VARLIT BIN_OP EXPRESSION
+    | VARLIT COMMA EXPRESSION
     | BO EXPRESSION BC
     | UN_OP EXPRESSION
     | EXPRESSION UN_OP
@@ -155,7 +161,26 @@ FUNCTIONCALL
     ;
 BIN_OP
     : EQ
-    | BINARY_OPERATOR
+    | PE
+    | ME
+    | XE
+    | AE
+    | OE
+    | OO
+    | AA
+    | '+'
+    | '-'
+    | '&'
+    | '*'
+    | '/'
+    | '^'
+    | '<'
+    | LE
+    | GE
+    | '>'
+    | EQU
+    | NE
+    | PNT
     ;
 UN_OP
     : UNARY_OPERATOR
@@ -172,7 +197,7 @@ int main(){
     return 0;
 }
 int yyerror(const char *s){
-    return printf("Syntax Error: Line %d\n",yylineno);
+    return printf("Syntax Error: Line %d\n",lineno);
 }
 int yywrap(){
     return 1;
