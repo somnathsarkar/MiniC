@@ -3,3 +3,5 @@ lex.yy.c
 *.out
 *.exe
 *.obj
+*.tab.c
+*.tab.h
