@@ -50,7 +50,7 @@ void printsymboltable(){
     	char str[30];
     	sprintf(str,"%d",focus->line);
     	printcell(str);
-    	printcell(focus->id);
+    	printcell(focus->dtype);
     	printcell(focus->scope);
     	printf("|");
     	printf("\n");
