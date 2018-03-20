@@ -22,16 +22,38 @@ void push(char *scope){
     scstack[sp] = strdup(scope);
 }
 void pop(){
-    apply_scope(symstack[sp],scstack[sp]);
     merge_table(symstack[sp-1],symstack[sp]);
     sp--;
 }
+void printcell(char *str){
+		int i = 0;
+		int space = 0;
+		space = 20 - strlen(str);
+    	printf("|");
+    	for(i = 0; i<3; i++)
+    		printf(" ");
+    	printf("%s",str);
+    	for(i =0 ; i<space; i++)
+    		printf(" ");
+  }
 void printsymboltable(){
+	int space = 10;
+	int i= 0;
     printf("Symbol Table\n");
     struct node *focus = (symstack[0])->root;
-    printf("Identifier Name\tLine\tDatatype\n");
-    while(focus){
-        printf("%s\t\t%d\t%s\n",focus->id,focus->line,focus->dtype);
+    printf("-------------------------------------------------------------------------------------------------\n");
+    printf("|   Identifier Name     |   Line\t\t|   Datatype\t        |   Scope\t        |\n");
+    printf("-------------------------------------------------------------------------------------------------\n");
+    while(focus){ 
+    	printcell(focus->id);
+    	char str[30];
+    	sprintf(str,"%d",focus->line);
+    	printcell(str);
+    	printcell(focus->dtype);
+    	printcell(focus->scope);
+    	printf("|");
+    	printf("\n");
+    	printf("-------------------------------------------------------------------------------------------------\n");
         focus = focus->next;
     }
 }
@@ -47,6 +69,10 @@ void undeclared_identifier(char * x){
 
 %union{
     char * str;
+	struct exp_type{
+		int mutable;
+		char *dtype;
+	};
 }
 
 %token DATATYPE ID CONSTANT IF WHILE RETURN STRUCTUNION
@@ -54,7 +80,7 @@ void undeclared_identifier(char * x){
 
 %token COMMA EQ PE XE AE OE ME OO AA EQU NE LE GE UNARY_OPERATOR PNT LS RS DE
 
-%right ELSE
+%right "then" ELSE
 
 %%
 S
@@ -66,32 +92,64 @@ STATEMENT
 	: EXP ';'
 	| FUNCTIONBLOCK
 	| DECLARATION ';'
+	| COMPOUND_STATEMENT
+	| IFHEAD STATEMENT %prec "then"
+	| IFHEAD STATEMENT ELSE STATEMENT
+	| WHILEHEAD STATEMENT
+	;	
+
+COMPOUND_STATEMENT
+	: '{' S '}'
+	;
+
+IFHEAD
+	: IF BO EXP BC
+	;
+
+WHILEHEAD
+	: WHILE BO EXP BC
 	;
 	
 DECLARATION
 	: DATATYPE DECLIST
+	| STRUCTUNION '{' DECLARATION_LIST '}'
+	;
+
+DECLARATION_LIST
+	: DECLARATION
+	| DECLARATION DECLARATION_LIST
 	;
 	
 DECLIST
-	: ID EQ EXP
-	| ID
-	| DECLIST COMMA ID
-	| DECLIST COMMA ID EQ EXP
+	: DECID EQ EXP
+	| DECID
+	| DECLIST COMMA DECID
+	| DECLIST COMMA DECID EQ EXP
+	;
+
+DECID
+	: ID
+	| '*' DECID
 	;
 	
 FUNCTIONBLOCK
-	: FUNCTIONHEAD CBO S CBC
+	: FUNCTIONHEAD COMPOUND_STATEMENT
 	| FUNCTIONHEAD ';'
 	;
 
 FUNCTIONHEAD
-	: DATATYPE ID BO BC
-	| DATATYPE ID BO ARGLIST BC
+	: DATATYPE DECID BO BC
+	| DATATYPE DECID BO ARGLIST BC
 	;
 	
 ARGLIST
-	: DATATYPE ID
-	| DATATYPE ID COMMA ARGLIST
+	: DATATYPE DECID
+	| DATATYPE DECID COMMA ARGLIST
+	;
+
+EXPLIST
+	: EXP
+	| EXP COMMA EXPLIST
 	;
 	
 EXP
@@ -176,10 +234,11 @@ PRE_EXP
 POST_EXP
 	: VARLIT
 	| POST_EXP UNARY_OPERATOR
-	| VARLIT BO ARGLIST BC
+	| VARLIT BO EXPLIST BC
 	| VARLIT BO BC
 	| POST_EXP PNT VARLIT
 	| POST_EXP '.' VARLIT
+	| POST_EXP '[' POST_EXP ']'
 	;
 	
 VARLIT
