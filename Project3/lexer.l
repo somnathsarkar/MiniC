@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "y.tab.h"
+#include "parser.tab.h"
 extern YYSTYPE yylval;
 const char * keywords[] = {"int","float","char","long","short","double","void","if","else","while","struct","for","switch","case","break","union","return"};
 int kc = 17;
@@ -35,6 +35,16 @@ int hash_lookup(const char *str){
 	}
 	return 0;
 }
+char *constant_type(const char *str){
+	char *result;
+	if(strstr(str,"\""))
+		result = strdup("char*");
+	else if(strstr(str,"."))
+		result = strdup("float");
+	else
+		result = strdup("int");
+	return result;
+}
 void insert_hash(const char *str){
 	if (hash_lookup(str))
 		return;
@@ -42,12 +52,7 @@ void insert_hash(const char *str){
 	if(hash_map[hash_value]==NULL){
 		hash_map[hash_value] = (struct hash_node *)malloc(sizeof(struct hash_node));
 		hash_map[hash_value]->value = strdup(str);
-		if(strstr(str,"\""))
-			hash_map[hash_value]->dtype = strdup("String");
-		else if(strstr(str,"."))
-			hash_map[hash_value]->dtype = strdup("Floating-Point");
-		else
-			hash_map[hash_value]->dtype = strdup("Integer");
+		hash_map[hash_value]->dtype = constant_type(str);
 		hash_map[hash_value]->line = lineno;
 		hash_map[hash_value]->next = NULL;
 	}else{
@@ -56,12 +61,7 @@ void insert_hash(const char *str){
 			focus = focus->next;
 		focus->next = (struct hash_node *)malloc(sizeof(struct hash_node));
 		focus->next->value = strdup(str);
-		if(strstr(str,"\""))
-			focus->next->dtype = strdup("String");
-		else if(strstr(str,"."))
-			focus->next->dtype = strdup("Floating-Point");
-		else
-			focus->next->dtype = strdup("Integer");
+		focus->next->dtype = constant_type(str);
 		focus->next->line = lineno;
 		focus->next->next = NULL;
 	}
@@ -164,7 +164,7 @@ comma [,]
 "->" return PNT;
 "&&" return AA;
 "||" return OO;
-[+\-*/\^&|<>] return *yytext;
+[+\-*/\^&|<>~] return *yytext;
 "=" return EQ;
 {datatype} {
     yylval.str = strdup(yytext);
@@ -172,13 +172,17 @@ comma [,]
 }
 {literal} {
 	insert_hash(yytext);
+	yylval.exp.mod = 0;
+	yylval.exp.dtype = constant_type(yytext);
     return CONSTANT;
 }
 ";" return *yytext;
 "(" return BO;
 ")" return BC;
-"{" return CBO;
-"}" return CBC;
+"{" return *yytext;
+"}" return *yytext;
+"[" return *yytext;
+"]" return *yytext;
 {comma} {
     return COMMA;
 }
