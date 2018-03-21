@@ -5,3 +5,5 @@ lex.yy.c
 *.obj
 *.tab.c
 *.tab.h
+*.output
+runproject.bat
